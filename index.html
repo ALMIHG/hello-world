@@ -279,13 +279,37 @@
       msgEl.textContent = `Подсказка: ${questions[level].h}`;
     }
 
+    function resetMovement() {
+      keys.left = false;
+      keys.right = false;
+    }
+
     function bindHoldButton(button, onPress, onRelease) {
-      const start = (e) => { e.preventDefault(); onPress(); };
-      const end = (e) => { e.preventDefault(); onRelease(); };
-      button.addEventListener('pointerdown', start);
-      button.addEventListener('pointerup', end);
-      button.addEventListener('pointercancel', end);
-      button.addEventListener('pointerleave', end);
+      const start = (e) => {
+        e.preventDefault();
+        if (button.setPointerCapture && e.pointerId !== undefined) {
+          button.setPointerCapture(e.pointerId);
+        }
+        onPress();
+      };
+      const end = (e) => {
+        e.preventDefault();
+        onRelease();
+      };
+
+      if ('PointerEvent' in window) {
+        button.addEventListener('pointerdown', start);
+        button.addEventListener('pointerup', end);
+        button.addEventListener('pointercancel', end);
+        button.addEventListener('lostpointercapture', end);
+      } else {
+        button.addEventListener('mousedown', start);
+        button.addEventListener('mouseup', end);
+        button.addEventListener('mouseleave', end);
+        button.addEventListener('touchstart', start, { passive: false });
+        button.addEventListener('touchend', end, { passive: false });
+        button.addEventListener('touchcancel', end, { passive: false });
+      }
     }
 
     function physics() {
@@ -328,6 +352,9 @@
     }
 
     document.addEventListener('keydown', (e) => {
+      const isTyping = document.activeElement === answerEl;
+      if (isTyping && e.key !== 'Enter') return;
+
       if (e.key === 'ArrowLeft') keys.left = true;
       if (e.key === 'ArrowRight') keys.right = true;
       if (e.key === 'ArrowUp') jump();
@@ -336,6 +363,11 @@
     document.addEventListener('keyup', (e) => {
       if (e.key === 'ArrowLeft') keys.left = false;
       if (e.key === 'ArrowRight') keys.right = false;
+    });
+
+    window.addEventListener('blur', resetMovement);
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) resetMovement();
     });
 
     checkBtn.addEventListener('click', checkAnswer);
