@@ -130,6 +130,7 @@
         <button type="button" class="control-btn" id="rightBtn">➡️</button>
         <button type="button" class="control-btn" id="hintBtn" style="grid-column: 1 / -1;">💡 Подсказка</button>
       </div>
+      <p>Управление: ⬅️➡️ — движение, ⬆️ — прыжок, Q — подсказка.</p>
     </section>
   </div>
 
@@ -322,6 +323,53 @@
         if (hit && y < o.h + 2) {
           if (nextX > x) nextX = o.x - 98;
           if (nextX < x) nextX = o.x + o.w;
+    function physics() {
+      const speed = questionActive ? 0 : 3.2;
+      let nextX = x + (keys.left ? -speed : 0) + (keys.right ? speed : 0);
+      nextX = Math.max(0, Math.min(2100, nextX));
+
+      for (const o of obstaclesData) {
+        const hit = collide(nextX, y, 98, 138, o.x, 0, o.w, o.h + 68);
+        if (hit && y < o.h + 2) {
+          if (nextX > x) nextX = o.x - 98;
+          if (nextX < x) nextX = o.x + o.w;
+        }
+      }
+      x = nextX;
+
+      vy -= 0.9;
+      y += vy;
+      if (y < 0) { y = 0; vy = 0; }
+
+      robot.style.left = `${x}px`;
+      robot.style.bottom = `${68 + y}px`;
+
+      bonusData.forEach((b, i) => {
+        if (b.collected) return;
+        if (collide(x + 20, y + 20, 56, 92, b.x, b.y, 35, 35)) {
+          b.collected = true;
+          bonusCount += 1;
+          bonusEls[i].style.display = 'none';
+          msgEl.className = 'msg ok';
+          msgEl.textContent = 'Бонус найден!';
+          renderHud();
+        }
+      });
+
+      const camX = Math.max(0, Math.min(x - 300, 2200 - stage.clientWidth));
+      world.style.transform = `translateX(${-camX}px)`;
+      tryOpenQuestion();
+      requestAnimationFrame(physics);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') keys.left = true;
+      if (e.key === 'ArrowRight') keys.right = true;
+      if (e.key === 'ArrowUp' && y === 0 && !questionActive) vy = 13;
+      if (e.key.toLowerCase() === 'q') {
+        if (questionActive) {
+          msgEl.className = 'msg warn';
+          msgEl.textContent = `Подсказка: ${questions[level].h}`;
         }
       }
       x = nextX;
