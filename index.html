@@ -14,6 +14,15 @@
       --warn: #c86616;
       --text: #2f2f44;
       --shadow: 0 8px 18px rgba(47, 47, 68, 0.15);
+  <title>КЕФИРЧИК — игра со звёздочками</title>
+  <style>
+    :root {
+      --bg: #f5f7ff;
+      --card: #fff;
+      --accent: #6f73ff;
+      --ok: #14a757;
+      --warn: #d85e3e;
+      --text: #24344a;
     }
     * { box-sizing: border-box; }
     body {
@@ -226,6 +235,96 @@
         </div>
         <div class="portal" id="portal"></div>
         <div class="ground"></div>
+      font-family: "Trebuchet MS", "Comic Sans MS", sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at 20% 10%, #fffde9 0%, #eef4ff 55%, #f7ebff 100%);
+    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 18px; display: grid; gap: 16px; grid-template-columns: 1.4fr 1fr; }
+    .panel { background: var(--card); border-radius: 18px; padding: 14px; box-shadow: 0 10px 24px rgba(38,55,95,.15); }
+    h1, h2, p { margin: 0 0 10px; }
+
+    .game-stage { position: relative; height: 400px; overflow: hidden; border-radius: 18px; border: 3px dashed #b9c8ff; background: linear-gradient(#bde9ff 0%, #d8f6ff 40%, #b7efb8 100%); }
+    .world { position: absolute; inset: 0; width: 2200px; }
+    .ground { position: absolute; left: 0; right: 0; bottom: 0; height: 68px; background: repeating-linear-gradient(45deg,#75cd77 0,#75cd77 20px,#67bf68 20px,#67bf68 40px); border-top: 3px solid #4a9f50; }
+
+    .obstacle { position: absolute; bottom: 68px; width: 44px; border-radius: 8px; background: linear-gradient(#ffb2a7,#ff8f7d); border: 2px solid #d96d58; }
+    .star { position: absolute; bottom: 140px; font-size: 36px; filter: drop-shadow(0 4px 4px rgba(0,0,0,.2)); animation: twinkle 1s infinite alternate; }
+    .bonus { position: absolute; bottom: 110px; font-size: 34px; animation: bob 1.5s infinite ease-in-out; }
+
+    .robot { position: absolute; width: 98px; height: 138px; left: 40px; bottom: 68px; transition: transform .2s ease; z-index: 4; }
+    .head { position: absolute; left: 8px; top: 0; width: 82px; height: 58px; border-radius: 18px; background: linear-gradient(120deg,#eaffff,#bcf5ff); border: 4px solid #5cc5df; }
+    .body { position: absolute; left: 0; top: 42px; width: 98px; height: 78px; border-radius: 24px; background: linear-gradient(140deg,#f9fdff,#c4ecff); border: 4px solid #5cc5df; overflow: hidden; }
+    .kefir-fill { position: absolute; left: 0; right: 0; bottom: 0; height: 42%; background: linear-gradient(#fff,#f4fffa); }
+    .face { position: absolute; left: 14px; right: 14px; top: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .eye { width: 28px; height: 34px; border-radius: 52% 52% 48% 48%; background: #fff; border: 2px solid #244966; position: relative; transition: .2s; }
+    .eye::after { content: ""; width: 11px; height: 11px; background: #1f3f57; border-radius: 50%; position: absolute; left: 9px; top: 12px; }
+    .mouth { position: absolute; left: 50%; top: 52px; width: 34px; height: 16px; margin-left: -17px; border-bottom: 4px solid #f15d94; border-radius: 0 0 50% 50%; transition: .2s; }
+    .legs { position: absolute; left: 22px; bottom: 0; display: flex; gap: 24px; }
+    .leg { width: 14px; height: 24px; background: #3c78c5; border-radius: 8px; }
+
+    .robot.happy { transform: scale(1.08) rotate(-4deg); }
+    .robot.happy .eye { height: 38px; }
+    .robot.happy .mouth { top: 50px; width: 42px; margin-left: -21px; }
+    .robot.sad { transform: scale(.9); }
+    .robot.sad .eye { height: 25px; }
+    .robot.sad .mouth { border-bottom: 0; border-top: 4px solid #f15d94; border-radius: 50% 50% 0 0; top: 60px; }
+
+    .hud { display: grid; gap: 10px; }
+    .stat { display: flex; justify-content: space-between; background: #f3f7ff; border: 2px solid #dce5ff; border-radius: 12px; padding: 10px; }
+    .task-box { background: #fff5fb; border: 2px solid #ffcce2; border-radius: 12px; padding: 12px; min-height: 126px; }
+    .actions { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+    input, button { font-size: 1rem; border-radius: 10px; }
+    input { border: 2px solid #a5c9ff; padding: 11px; }
+    button { border: 0; padding: 11px 14px; color: #fff; background: linear-gradient(130deg,var(--accent),#9f48ff); cursor: pointer; }
+    .msg { font-weight: 700; min-height: 24px; }
+    .ok { color: var(--ok); }
+    .warn { color: var(--warn); }
+    .hidden { opacity: .5; pointer-events: none; }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(64px, 1fr));
+      gap: 8px;
+      margin-top: 8px;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .control-btn {
+      border: 0;
+      border-radius: 12px;
+      min-height: 52px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      background: linear-gradient(140deg, #4f7cff, #8a56ff);
+      box-shadow: 0 6px 14px rgba(79, 124, 255, 0.25);
+      touch-action: manipulation;
+    }
+    .control-btn:active { transform: scale(0.97); }
+
+    @keyframes twinkle { from { transform: scale(1) rotate(-8deg);} to { transform: scale(1.15) rotate(8deg);} }
+    @keyframes bob { 0%,100% { transform: translateY(0);} 50% { transform: translateY(-9px);} }
+
+    @media (max-width: 900px) { .container { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <section class="panel">
+      <h1>🤖 КЕФИРЧИК и охота за звёздами</h1>
+      <p>Двигайся стрелками, перепрыгивай препятствия, собирай бонусы и отвечай на вопросы у каждой звезды.</p>
+      <div class="game-stage" id="stage">
+        <div class="world" id="world">
+          <div class="robot" id="robot">
+            <div class="head">
+              <div class="face"><div class="eye"></div><div class="eye"></div></div>
+              <div class="mouth"></div>
+            </div>
+            <div class="body"><div class="kefir-fill"></div></div>
+            <div class="legs"><div class="leg"></div><div class="leg"></div></div>
+          </div>
+          <div class="ground"></div>
+        </div>
       </div>
     </section>
 
@@ -268,6 +367,27 @@
         <button id="btnJump">⬆️ Прыжок</button>
         <button id="btnRight">➡️ Вправо</button>
       </div>
+      <div class="stat"><span>Этап:</span><strong id="level">1 / 10</strong></div>
+      <div class="stat"><span>Звёзды:</span><strong id="stars">0 ⭐</strong></div>
+      <div class="stat"><span>Бонусы:</span><strong id="bonuses">0 🧸</strong></div>
+
+      <div class="task-box">
+        <h2>Вопрос у звезды</h2>
+        <p id="task">Доберись до первой звёздочки ⭐</p>
+      </div>
+      <div class="actions" id="qaBlock">
+        <input id="answer" type="text" placeholder="Ответ появится у звезды" />
+        <button id="checkBtn">Ответить</button>
+      </div>
+      <p class="msg" id="message"></p>
+      <p>Управление: клавиатура (⬅️➡️⬆️, Q) или кнопки ниже (тач/мышь).</p>
+      <div class="controls" aria-label="Кнопки управления КЕФИРЧИКОМ">
+        <button type="button" class="control-btn" id="leftBtn">⬅️</button>
+        <button type="button" class="control-btn" id="jumpBtn">⬆️</button>
+        <button type="button" class="control-btn" id="rightBtn">➡️</button>
+        <button type="button" class="control-btn" id="hintBtn" style="grid-column: 1 / -1;">💡 Подсказка</button>
+      </div>
+      <p>Управление: ⬅️➡️ — движение, ⬆️ — прыжок, Q — подсказка.</p>
     </section>
   </div>
 
@@ -577,6 +697,300 @@
       el.msg.textContent = 'Игра началась! Собери монетки и реши задачу.';
       el.msg.className = 'msg ok';
     });
+    const questions = [
+      { q: "Сколько будет 2 + 2?", a: "4", h: "Это как две пары." },
+      { q: "Какой цвет у солнца на рисунках?", a: "желтый", h: "Тёплый и яркий цвет." },
+      { q: "Сколько лап у собаки?", a: "4", h: "Столько же, сколько у кота." },
+      { q: "Продолжи: 3, 4, 5, ...", a: "6", h: "Следующее число." },
+      { q: "Что больше: 9 или 7?", a: "9", h: "Большее число ближе к 10." },
+      { q: "Сколько будет 10 - 3?", a: "7", h: "Убери три." },
+      { q: "Сколько будет 5 + 4?", a: "9", h: "Пять и ещё четыре." },
+      { q: "Сколько дней в неделе?", a: "7", h: "От понедельника до воскресенья." },
+      { q: "Как называется фигура с тремя углами?", a: "треугольник", h: "Три угла." },
+      { q: "Сколько будет 6 + 5?", a: "11", h: "Чуть больше десяти." }
+    ];
+
+    const world = document.getElementById('world');
+    const stage = document.getElementById('stage');
+    const robot = document.getElementById('robot');
+    const levelEl = document.getElementById('level');
+    const starsEl = document.getElementById('stars');
+    const bonusesEl = document.getElementById('bonuses');
+    const taskEl = document.getElementById('task');
+    const msgEl = document.getElementById('message');
+    const answerEl = document.getElementById('answer');
+    const checkBtn = document.getElementById('checkBtn');
+    const qaBlock = document.getElementById('qaBlock');
+    const leftBtn = document.getElementById('leftBtn');
+    const rightBtn = document.getElementById('rightBtn');
+    const jumpBtn = document.getElementById('jumpBtn');
+    const hintBtn = document.getElementById('hintBtn');
+
+    const obstaclesData = [340, 520, 760, 980, 1190, 1410, 1650, 1880].map((x, i) => ({ x, w: 44, h: i % 2 ? 50 : 72 }));
+    const starPath = [240, 450, 680, 910, 1130, 1360, 1560, 1760, 1940, 2100];
+    const bonusData = [
+      { x: 305, y: 130, icon: '🧸' }, { x: 860, y: 130, icon: '🚗' }, { x: 1460, y: 130, icon: '🐶' }, { x: 2020, y: 130, icon: '🧩' }
+    ];
+
+    obstaclesData.forEach((o) => {
+      const d = document.createElement('div');
+      d.className = 'obstacle';
+      d.style.left = `${o.x}px`;
+      d.style.height = `${o.h}px`;
+      world.appendChild(d);
+    });
+
+    const bonusEls = bonusData.map((b) => {
+      const d = document.createElement('div');
+      d.className = 'bonus';
+      d.textContent = b.icon;
+      d.style.left = `${b.x}px`;
+      d.style.bottom = `${b.y}px`;
+      world.appendChild(d);
+      return d;
+    });
+
+    const starEl = document.createElement('div');
+    starEl.className = 'star';
+    world.appendChild(starEl);
+
+    let level = 0, stars = 0, bonusCount = 0;
+    let x = 40, y = 0, vy = 0;
+    let questionActive = false;
+    const keys = { left: false, right: false };
+
+    function normalize(v) { return v.toLowerCase().trim().replace(/ё/g, 'е'); }
+
+    function setEmotion(type) {
+      robot.classList.remove('happy', 'sad');
+      if (type) robot.classList.add(type);
+      setTimeout(() => robot.classList.remove('happy', 'sad'), 700);
+    }
+
+    function playHappyTune() {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return;
+      const ctx = new Ctx();
+      const notes = [523.25, 659.25, 783.99];
+      notes.forEach((f, i) => {
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.type = 'triangle';
+        o.frequency.value = f;
+        g.gain.value = 0.001;
+        o.connect(g); g.connect(ctx.destination);
+        const t = ctx.currentTime + i * 0.15;
+        g.gain.exponentialRampToValueAtTime(0.15, t + 0.03);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.16);
+        o.start(t); o.stop(t + 0.18);
+      });
+    }
+
+    function renderHud() {
+      levelEl.textContent = `${Math.min(level + 1, 10)} / 10`;
+      starsEl.textContent = `${stars} ⭐`;
+      bonusesEl.textContent = `${bonusCount} 🧸`;
+      starEl.style.left = `${starPath[Math.min(level, 9)]}px`;
+      starEl.style.display = level >= 10 ? 'none' : 'block';
+      qaBlock.classList.toggle('hidden', !questionActive);
+    }
+
+    function collide(ax, ay, aw, ah, bx, by, bw, bh) {
+      return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+    }
+
+    function tryOpenQuestion() {
+      if (level >= 10 || questionActive) return;
+      const sx = starPath[level];
+      if (Math.abs((x + 48) - sx) < 35 && y < 15) {
+        questionActive = true;
+        taskEl.textContent = questions[level].q;
+        msgEl.textContent = 'Ответь, чтобы забрать звезду!';
+        answerEl.value = '';
+        answerEl.focus();
+        renderHud();
+      }
+    }
+
+    function checkAnswer() {
+      if (!questionActive) return;
+      const curr = questions[level];
+      if (normalize(answerEl.value) === normalize(curr.a)) {
+        stars += 1;
+        level += 1;
+        questionActive = false;
+        msgEl.className = 'msg ok';
+        msgEl.textContent = 'Правильно! КЕФИРЧИК сияет и забирает звезду!';
+        taskEl.textContent = level >= 10 ? '🏆 Все звёзды собраны! Победа!' : 'Беги к следующей звезде ⭐';
+        setEmotion('happy');
+        playHappyTune();
+      } else {
+        msgEl.className = 'msg warn';
+        msgEl.textContent = 'Немного ошибся. КЕФИРЧИК расстроился и чуть сдулся 😔';
+        setEmotion('sad');
+      }
+      renderHud();
+    }
+
+    function jump() {
+      if (y === 0 && !questionActive) vy = 13;
+    }
+
+    function showHint() {
+      if (!questionActive) return;
+      msgEl.className = 'msg warn';
+      msgEl.textContent = `Подсказка: ${questions[level].h}`;
+    }
+
+    function resetMovement() {
+      keys.left = false;
+      keys.right = false;
+    }
+
+    function bindHoldButton(button, onPress, onRelease) {
+      const start = (e) => {
+        e.preventDefault();
+        if (button.setPointerCapture && e.pointerId !== undefined) {
+          button.setPointerCapture(e.pointerId);
+        }
+        onPress();
+      };
+      const end = (e) => {
+        e.preventDefault();
+        onRelease();
+      };
+
+      if ('PointerEvent' in window) {
+        button.addEventListener('pointerdown', start);
+        button.addEventListener('pointerup', end);
+        button.addEventListener('pointercancel', end);
+        button.addEventListener('lostpointercapture', end);
+      } else {
+        button.addEventListener('mousedown', start);
+        button.addEventListener('mouseup', end);
+        button.addEventListener('mouseleave', end);
+        button.addEventListener('touchstart', start, { passive: false });
+        button.addEventListener('touchend', end, { passive: false });
+        button.addEventListener('touchcancel', end, { passive: false });
+      }
+    }
+
+    function physics() {
+      const speed = questionActive ? 0 : 3.2;
+      let nextX = x + (keys.left ? -speed : 0) + (keys.right ? speed : 0);
+      nextX = Math.max(0, Math.min(2100, nextX));
+
+      for (const o of obstaclesData) {
+        const hit = collide(nextX, y, 98, 138, o.x, 0, o.w, o.h + 68);
+        if (hit && y < o.h + 2) {
+          if (nextX > x) nextX = o.x - 98;
+          if (nextX < x) nextX = o.x + o.w;
+    function physics() {
+      const speed = questionActive ? 0 : 3.2;
+      let nextX = x + (keys.left ? -speed : 0) + (keys.right ? speed : 0);
+      nextX = Math.max(0, Math.min(2100, nextX));
+
+      for (const o of obstaclesData) {
+        const hit = collide(nextX, y, 98, 138, o.x, 0, o.w, o.h + 68);
+        if (hit && y < o.h + 2) {
+          if (nextX > x) nextX = o.x - 98;
+          if (nextX < x) nextX = o.x + o.w;
+        }
+      }
+      x = nextX;
+
+      vy -= 0.9;
+      y += vy;
+      if (y < 0) { y = 0; vy = 0; }
+
+      robot.style.left = `${x}px`;
+      robot.style.bottom = `${68 + y}px`;
+
+      bonusData.forEach((b, i) => {
+        if (b.collected) return;
+        if (collide(x + 20, y + 20, 56, 92, b.x, b.y, 35, 35)) {
+          b.collected = true;
+          bonusCount += 1;
+          bonusEls[i].style.display = 'none';
+          msgEl.className = 'msg ok';
+          msgEl.textContent = 'Бонус найден!';
+          renderHud();
+        }
+      });
+
+      const camX = Math.max(0, Math.min(x - 300, 2200 - stage.clientWidth));
+      world.style.transform = `translateX(${-camX}px)`;
+      tryOpenQuestion();
+      requestAnimationFrame(physics);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') keys.left = true;
+      if (e.key === 'ArrowRight') keys.right = true;
+      if (e.key === 'ArrowUp' && y === 0 && !questionActive) vy = 13;
+      if (e.key.toLowerCase() === 'q') {
+        if (questionActive) {
+          msgEl.className = 'msg warn';
+          msgEl.textContent = `Подсказка: ${questions[level].h}`;
+        }
+      }
+      x = nextX;
+
+      vy -= 0.9;
+      y += vy;
+      if (y < 0) { y = 0; vy = 0; }
+
+      robot.style.left = `${x}px`;
+      robot.style.bottom = `${68 + y}px`;
+
+      bonusData.forEach((b, i) => {
+        if (b.collected) return;
+        if (collide(x + 20, y + 20, 56, 92, b.x, b.y, 35, 35)) {
+          b.collected = true;
+          bonusCount += 1;
+          bonusEls[i].style.display = 'none';
+          msgEl.className = 'msg ok';
+          msgEl.textContent = 'Бонус найден!';
+          renderHud();
+        }
+      });
+
+      const camX = Math.max(0, Math.min(x - 300, 2200 - stage.clientWidth));
+      world.style.transform = `translateX(${-camX}px)`;
+      tryOpenQuestion();
+      requestAnimationFrame(physics);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      const isTyping = document.activeElement === answerEl;
+      if (isTyping && e.key !== 'Enter') return;
+
+      if (e.key === 'ArrowLeft') keys.left = true;
+      if (e.key === 'ArrowRight') keys.right = true;
+      if (e.key === 'ArrowUp') jump();
+      if (e.key.toLowerCase() === 'q') showHint();
+    });
+    document.addEventListener('keyup', (e) => {
+      if (e.key === 'ArrowLeft') keys.left = false;
+      if (e.key === 'ArrowRight') keys.right = false;
+    });
+
+    window.addEventListener('blur', resetMovement);
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) resetMovement();
+    });
+
+    checkBtn.addEventListener('click', checkAnswer);
+    answerEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') checkAnswer(); });
+
+    bindHoldButton(leftBtn, () => { keys.left = true; }, () => { keys.left = false; });
+    bindHoldButton(rightBtn, () => { keys.right = true; }, () => { keys.right = false; });
+    jumpBtn.addEventListener('click', jump);
+    jumpBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); jump(); });
+    hintBtn.addEventListener('click', showHint);
+
+    renderHud();
+    physics();
   </script>
 </body>
 </html>
