@@ -3,523 +3,425 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Кефирный Роботик — Детская игра</title>
+  <title>КЕФИРЧИК — игра со звёздочками</title>
   <style>
     :root {
-      --bg: #fff7d6;
-      --card: #ffffff;
-      --accent: #ff8cc6;
-      --accent2: #6cd4ff;
-      --ok: #25b46b;
-      --text: #2f2f44;
-      --shadow: 0 8px 18px rgba(47, 47, 68, 0.15);
+      --bg: #f5f7ff;
+      --card: #fff;
+      --accent: #6f73ff;
+      --ok: #14a757;
+      --warn: #d85e3e;
+      --text: #24344a;
     }
-
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: "Comic Sans MS", "Trebuchet MS", sans-serif;
-      background: radial-gradient(circle at top, #fffce8 0%, var(--bg) 48%, #ffe8ef 100%);
+      font-family: "Trebuchet MS", "Comic Sans MS", sans-serif;
       color: var(--text);
-      min-height: 100vh;
+      background: radial-gradient(circle at 20% 10%, #fffde9 0%, #eef4ff 55%, #f7ebff 100%);
     }
-
-    .container {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 20px;
-      display: grid;
-      gap: 16px;
-      grid-template-columns: 1.2fr 1fr;
-    }
-
-    .panel {
-      background: var(--card);
-      border-radius: 18px;
-      box-shadow: var(--shadow);
-      padding: 16px;
-    }
-
+    .container { max-width: 1200px; margin: 0 auto; padding: 18px; display: grid; gap: 16px; grid-template-columns: 1.4fr 1fr; }
+    .panel { background: var(--card); border-radius: 18px; padding: 14px; box-shadow: 0 10px 24px rgba(38,55,95,.15); }
     h1, h2, p { margin: 0 0 10px; }
 
-    .game-stage {
-      position: relative;
-      height: 320px;
-      border-radius: 16px;
-      border: 4px dashed #ffbfdc;
-      overflow: hidden;
-      background: linear-gradient(#c8efff 0%, #b2f8cc 48%, #9be58d 100%);
-    }
+    .game-stage { position: relative; height: 400px; overflow: hidden; border-radius: 18px; border: 3px dashed #b9c8ff; background: linear-gradient(#bde9ff 0%, #d8f6ff 40%, #b7efb8 100%); }
+    .world { position: absolute; inset: 0; width: 2200px; }
+    .ground { position: absolute; left: 0; right: 0; bottom: 0; height: 68px; background: repeating-linear-gradient(45deg,#75cd77 0,#75cd77 20px,#67bf68 20px,#67bf68 40px); border-top: 3px solid #4a9f50; }
 
-    .ground {
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      height: 62px;
-      background: repeating-linear-gradient(45deg, #86c96d 0, #86c96d 12px, #95d978 12px, #95d978 24px);
-      border-top: 3px solid #5da95f;
-    }
+    .obstacle { position: absolute; bottom: 68px; width: 44px; border-radius: 8px; background: linear-gradient(#ffb2a7,#ff8f7d); border: 2px solid #d96d58; }
+    .star { position: absolute; bottom: 140px; font-size: 36px; filter: drop-shadow(0 4px 4px rgba(0,0,0,.2)); animation: twinkle 1s infinite alternate; }
+    .bonus { position: absolute; bottom: 110px; font-size: 34px; animation: bob 1.5s infinite ease-in-out; }
 
-    .robot {
-      position: absolute;
-      width: 90px;
-      height: 130px;
-      left: 40px;
-      bottom: 62px;
-      transition: transform 90ms linear;
-    }
+    .robot { position: absolute; width: 98px; height: 138px; left: 40px; bottom: 68px; transition: transform .2s ease; z-index: 4; }
+    .head { position: absolute; left: 8px; top: 0; width: 82px; height: 58px; border-radius: 18px; background: linear-gradient(120deg,#eaffff,#bcf5ff); border: 4px solid #5cc5df; }
+    .body { position: absolute; left: 0; top: 42px; width: 98px; height: 78px; border-radius: 24px; background: linear-gradient(140deg,#f9fdff,#c4ecff); border: 4px solid #5cc5df; overflow: hidden; }
+    .kefir-fill { position: absolute; left: 0; right: 0; bottom: 0; height: 42%; background: linear-gradient(#fff,#f4fffa); }
+    .face { position: absolute; left: 14px; right: 14px; top: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .eye { width: 28px; height: 34px; border-radius: 52% 52% 48% 48%; background: #fff; border: 2px solid #244966; position: relative; transition: .2s; }
+    .eye::after { content: ""; width: 11px; height: 11px; background: #1f3f57; border-radius: 50%; position: absolute; left: 9px; top: 12px; }
+    .mouth { position: absolute; left: 50%; top: 52px; width: 34px; height: 16px; margin-left: -17px; border-bottom: 4px solid #f15d94; border-radius: 0 0 50% 50%; transition: .2s; }
+    .legs { position: absolute; left: 22px; bottom: 0; display: flex; gap: 24px; }
+    .leg { width: 14px; height: 24px; background: #3c78c5; border-radius: 8px; }
 
-    .robot .body {
-      width: 100%;
-      height: 88px;
-      border-radius: 26px;
-      background: linear-gradient(150deg, #f5ffff 0%, #e3fbff 45%, #b1efff 100%);
-      border: 4px solid #66cde7;
-      position: relative;
-      overflow: hidden;
-    }
+    .robot.happy { transform: scale(1.08) rotate(-4deg); }
+    .robot.happy .eye { height: 38px; }
+    .robot.happy .mouth { top: 50px; width: 42px; margin-left: -21px; }
+    .robot.sad { transform: scale(.9); }
+    .robot.sad .eye { height: 25px; }
+    .robot.sad .mouth { border-bottom: 0; border-top: 4px solid #f15d94; border-radius: 50% 50% 0 0; top: 60px; }
 
-    .kefir {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 42%;
-      background: linear-gradient(180deg, #ffffff, #f7fffb);
-      animation: bubble 1.7s ease-in-out infinite;
-    }
-
-    .bubble {
-      position: absolute;
-      background: rgba(255,255,255,0.85);
-      border-radius: 999px;
-      animation: float 2.2s linear infinite;
-    }
-
-    .bubble:nth-child(1){ width:11px;height:11px;left:18px;bottom:2px;animation-delay:0s; }
-    .bubble:nth-child(2){ width:8px;height:8px;left:40px;bottom:8px;animation-delay:0.5s; }
-    .bubble:nth-child(3){ width:14px;height:14px;left:62px;bottom:5px;animation-delay:1s; }
-
-    .face {
-      position: absolute;
-      top: 18px;
-      left: 12px;
-      right: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .eye {
-      width: 24px;
-      height: 30px;
-      border-radius: 50%;
-      background: white;
-      border: 2px solid #2c587a;
-      position: relative;
-    }
-
-    .eye::after {
-      content: "";
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      background: #244666;
-      position: absolute;
-      left: 8px;
-      top: 11px;
-    }
-
-    .smile {
-      position: absolute;
-      width: 32px;
-      height: 16px;
-      border-bottom: 3px solid #ff6295;
-      border-radius: 0 0 50% 50%;
-      left: 50%;
-      transform: translateX(-50%);
-      top: 56px;
-    }
-
-    .arms {
-      position: absolute;
-      width: 100%;
-      top: 46px;
-      left: 0;
-      display: flex;
-      justify-content: space-between;
-      pointer-events: none;
-    }
-
-    .arm {
-      width: 17px;
-      height: 45px;
-      border-radius: 999px;
-      background: #65ccf3;
-    }
-
-    .legs {
-      display: flex;
-      justify-content: center;
-      gap: 16px;
-      margin-top: 4px;
-    }
-
-    .leg {
-      width: 14px;
-      height: 36px;
-      border-radius: 8px;
-      background: #4f8bd6;
-    }
-
-    .hud {
-      display: grid;
-      gap: 12px;
-    }
-
-    .stat {
-      display: flex;
-      justify-content: space-between;
-      font-size: 1rem;
-      background: #f7fbff;
-      padding: 10px;
-      border-radius: 10px;
-      border: 2px solid #d9ecff;
-    }
-
-    .task-box {
-      background: #fff2fa;
-      border: 3px solid #ffc5e2;
-      border-radius: 14px;
-      padding: 14px;
-      font-size: 1.2rem;
-      min-height: 110px;
-    }
-
-    .actions {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 8px;
-      align-items: center;
-    }
-
-    input[type="text"] {
-      width: 100%;
-      font-size: 1rem;
-      padding: 12px;
-      border-radius: 10px;
-      border: 2px solid #a9daff;
-      outline: none;
-    }
-
-    button {
-      border: none;
-      border-radius: 10px;
-      padding: 12px 16px;
-      font-size: 1rem;
-      cursor: pointer;
-      color: white;
-      background: linear-gradient(140deg, var(--accent), #f66cae);
-    }
-
-    .hint {
-      background: #eefcff;
-      border: 2px solid #c6f1ff;
-      border-radius: 10px;
-      padding: 10px;
-      font-size: .95rem;
-    }
-
-    .keys {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(70px,1fr));
-      gap: 8px;
-      text-align: center;
-      margin-top: 8px;
-    }
-
-    .key {
-      padding: 8px;
-      border-radius: 10px;
-      background: #f8f1ff;
-      border: 2px solid #e4d0ff;
-    }
-
+    .hud { display: grid; gap: 10px; }
+    .stat { display: flex; justify-content: space-between; background: #f3f7ff; border: 2px solid #dce5ff; border-radius: 12px; padding: 10px; }
+    .task-box { background: #fff5fb; border: 2px solid #ffcce2; border-radius: 12px; padding: 12px; min-height: 126px; }
+    .actions { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+    input, button { font-size: 1rem; border-radius: 10px; }
+    input { border: 2px solid #a5c9ff; padding: 11px; }
+    button { border: 0; padding: 11px 14px; color: #fff; background: linear-gradient(130deg,var(--accent),#9f48ff); cursor: pointer; }
     .msg { font-weight: 700; min-height: 24px; }
     .ok { color: var(--ok); }
-    .warn { color: #c86616; }
+    .warn { color: var(--warn); }
+    .hidden { opacity: .5; pointer-events: none; }
+    .fatal { color: #b01919; font-weight: 700; }
 
-    .stars {
-      letter-spacing: 2px;
-      color: #f5a400;
-      font-size: 1.2rem;
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(64px, 1fr));
+      gap: 8px;
+      margin-top: 8px;
+      user-select: none;
+      -webkit-user-select: none;
     }
+    .control-btn {
+      border: 0;
+      border-radius: 12px;
+      min-height: 52px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      background: linear-gradient(140deg, #4f7cff, #8a56ff);
+      box-shadow: 0 6px 14px rgba(79, 124, 255, 0.25);
+      touch-action: manipulation;
+    }
+    .control-btn:active { transform: scale(0.97); }
 
-    @keyframes bubble {
-      0%,100% { height: 40%; }
-      50% { height: 50%; }
-    }
-    @keyframes float {
-      from { transform: translateY(0); opacity: 1; }
-      to { transform: translateY(-42px); opacity: 0; }
-    }
+    @keyframes twinkle { from { transform: scale(1) rotate(-8deg);} to { transform: scale(1.15) rotate(8deg);} }
+    @keyframes bob { 0%,100% { transform: translateY(0);} 50% { transform: translateY(-9px);} }
 
-    @media (max-width: 900px) {
-      .container { grid-template-columns: 1fr; }
-    }
+    @media (max-width: 900px) { .container { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
   <div class="container">
     <section class="panel">
-      <h1>🧃 Кефирный Роботик</h1>
-      <p>Яркая игра для детей 5–10 лет. Проходи уровни, решай добрые задачки и собирай звёздочки!</p>
+      <h1>🤖 КЕФИРЧИК и охота за звёздами</h1>
+      <p>Двигайся стрелками, перепрыгивай препятствия, собирай бонусы и отвечай на вопросы у каждой звезды.</p>
       <div class="game-stage" id="stage">
-        <div class="robot" id="robot">
-          <div class="arms"><div class="arm"></div><div class="arm"></div></div>
-          <div class="body">
-            <div class="kefir">
-              <span class="bubble"></span>
-              <span class="bubble"></span>
-              <span class="bubble"></span>
+        <div class="world" id="world">
+          <div class="robot" id="robot">
+            <div class="head">
+              <div class="face"><div class="eye"></div><div class="eye"></div></div>
+              <div class="mouth"></div>
             </div>
-            <div class="face">
-              <div class="eye"></div>
-              <div class="eye"></div>
-            </div>
-            <div class="smile"></div>
+            <div class="body"><div class="kefir-fill"></div></div>
+            <div class="legs"><div class="leg"></div><div class="leg"></div></div>
           </div>
-          <div class="legs"><div class="leg"></div><div class="leg"></div></div>
+          <div class="ground"></div>
         </div>
-        <div class="ground"></div>
       </div>
     </section>
 
     <section class="panel hud">
-      <div class="stat"><span>Возрастной блок:</span><strong id="ageBlock">5 лет</strong></div>
-      <div class="stat"><span>Уровень:</span><strong id="level">1 / 10</strong></div>
-      <div class="stat"><span>Звёзды:</span><strong class="stars" id="stars">⭐</strong></div>
+      <div class="stat"><span>Этап:</span><strong id="level">1 / 10</strong></div>
+      <div class="stat"><span>Звёзды:</span><strong id="stars">0 ⭐</strong></div>
+      <div class="stat"><span>Бонусы:</span><strong id="bonuses">0 🧸</strong></div>
 
       <div class="task-box">
-        <h2>Задание</h2>
-        <p id="task"></p>
+        <h2>Вопрос у звезды</h2>
+        <p id="task">Доберись до первой звёздочки ⭐</p>
       </div>
-
-      <div class="actions">
-        <input id="answer" type="text" placeholder="Введи ответ" />
-        <button id="checkBtn">Проверить</button>
+      <div class="actions" id="qaBlock">
+        <input id="answer" type="text" placeholder="Ответ появится у звезды" />
+        <button id="checkBtn">Ответить</button>
       </div>
-
       <p class="msg" id="message"></p>
-
-      <div class="hint">
-        <strong>Управление:</strong><br>
-        ⬅️➡️ — движение, ⬆️ — прыжок.<br>
-        Q — подсказка, W — повтор задания, E — радость (танец).
-        <div class="keys">
-          <div class="key">Q<br>Подсказка</div>
-          <div class="key">W<br>Повтор</div>
-          <div class="key">E<br>Танец</div>
-        </div>
+      <p>Управление: клавиатура (⬅️➡️⬆️, Q) или кнопки ниже (тач/мышь).</p>
+      <div class="controls" aria-label="Кнопки управления КЕФИРЧИКОМ">
+        <button type="button" class="control-btn" id="leftBtn">⬅️</button>
+        <button type="button" class="control-btn" id="jumpBtn">⬆️</button>
+        <button type="button" class="control-btn" id="rightBtn">➡️</button>
+        <button type="button" class="control-btn" id="hintBtn" style="grid-column: 1 / -1;">💡 Подсказка</button>
       </div>
     </section>
   </div>
 
   <script>
-    const blocks = {
-      5: [
-        { q: "Сколько будет 1 + 1?", a: "2", h: "Посчитай пальчики: один и ещё один." },
-        { q: "Какой цвет у травы летом?", a: "зелёный", h: "Цвет листиков и лужайки." },
-        { q: "Сколько лап у кота?", a: "4", h: "Котик ходит на четырёх лапках." },
-        { q: "Продолжи: 2, 3, 4, ...", a: "5", h: "Следующее число после 4." },
-        { q: "Что больше: 3 или 5?", a: "5", h: "Большее число — где больше палочек." },
-        { q: "Сколько будет 2 + 0?", a: "2", h: "Ноль ничего не добавляет." },
-        { q: "Назови фигуру с тремя углами.", a: "треугольник", h: "У неё ровно три уголка." },
-        { q: "Сколько дней в выходных?", a: "2", h: "Суббота и воскресенье." },
-        { q: "Какой месяц идёт после января?", a: "февраль", h: "Второй месяц в году." },
-        { q: "Сколько будет 3 + 1?", a: "4", h: "После 3 идёт ..." }
-      ],
-      6: [
-        { q: "Сколько будет 4 + 3?", a: "7", h: "Посчитай вперёд от 4." },
-        { q: "Сколько букв в слове 'кот'?", a: "3", h: "К-О-Т." },
-        { q: "Сколько будет 8 - 2?", a: "6", h: "Убери два от восьми." },
-        { q: "Какое время года после весны?", a: "лето", h: "Солнечное и тёплое." },
-        { q: "Сколько углов у квадрата?", a: "4", h: "Столько же, сколько сторон." },
-        { q: "Что легче: камень или перо?", a: "перо", h: "Его уносит ветер." },
-        { q: "Продолжи: 10, 9, 8, ...", a: "7", h: "Счёт назад." },
-        { q: "Сколько будет 5 + 5?", a: "10", h: "Пара пятёрок." },
-        { q: "Сколько часов на циферблате?", a: "12", h: "От 1 до 12." },
-        { q: "Сколько будет 9 - 4?", a: "5", h: "Убери четыре." }
-      ],
-      7: [
-        { q: "Сколько будет 6 + 6?", a: "12", h: "Две шестёрки." },
-        { q: "Сколько будет 14 - 5?", a: "9", h: "Отними 5 от 14." },
-        { q: "Назови третий день недели.", a: "среда", h: "После вторника." },
-        { q: "Сколько сторон у пятиугольника?", a: "5", h: "Подсказка в названии." },
-        { q: "Какое число между 18 и 20?", a: "19", h: "Оно одно." },
-        { q: "Сколько будет 3 × 2?", a: "6", h: "Три двойки." },
-        { q: "Сколько минут в часе?", a: "60", h: "Полный круг минут." },
-        { q: "Продолжи: 2, 4, 6, ...", a: "8", h: "Шаг +2." },
-        { q: "Что быстрее: улитка или велосипед?", a: "велосипед", h: "На нём ездят быстро." },
-        { q: "Сколько будет 15 - 7?", a: "8", h: "Пятнадцать минус семь." }
-      ],
-      8: [
-        { q: "Сколько будет 9 + 8?", a: "17", h: "Почти двадцать." },
-        { q: "Сколько будет 24 - 9?", a: "15", h: "Удобно отнять 10 и вернуть 1." },
-        { q: "Сколько см в 1 дм?", a: "10", h: "Дециметр — это 10 сантиметров." },
-        { q: "Продолжи: 5, 10, 15, ...", a: "20", h: "Шаг +5." },
-        { q: "Сколько будет 4 × 3?", a: "12", h: "Четыре тройки." },
-        { q: "Сколько будет 20 ÷ 4?", a: "5", h: "Раздели поровну." },
-        { q: "Что больше: 3/4 или 1/2?", a: "3/4", h: "Три части из четырёх — это больше половины." },
-        { q: "Сколько месяцев в году?", a: "12", h: "От января до декабря." },
-        { q: "Сколько будет 30 - 12?", a: "18", h: "Минус десять и ещё два." },
-        { q: "Сколько рёбер у куба?", a: "12", h: "Проверь модель кубика." }
-      ],
-      9: [
-        { q: "Сколько будет 36 ÷ 6?", a: "6", h: "Таблица умножения." },
-        { q: "Сколько будет 7 × 8?", a: "56", h: "Семь восьмёрок." },
-        { q: "Что такое 25% от 100?", a: "25", h: "Четверть от ста." },
-        { q: "Сколько минут в 2 часах?", a: "120", h: "60 + 60." },
-        { q: "Сколько будет 45 + 19?", a: "64", h: "Плюс двадцать минус один." },
-        { q: "Найди периметр квадрата со стороной 5.", a: "20", h: "Сторона × 4." },
-        { q: "Сколько будет 81 ÷ 9?", a: "9", h: "Девятка." },
-        { q: "Продолжи: 3, 6, 12, 24, ...", a: "48", h: "Умножаем на 2." },
-        { q: "Сколько будет 100 - 37?", a: "63", h: "Сначала минус 30, потом 7." },
-        { q: "Сколько вершин у треугольной пирамиды?", a: "4", h: "У тетраэдра 4 вершины." }
-      ],
-      10: [
-        { q: "Сколько будет 12 × 12?", a: "144", h: "Квадрат 12." },
-        { q: "Сколько будет 144 ÷ 12?", a: "12", h: "Обратное действие." },
-        { q: "Найди НОД чисел 12 и 18.", a: "6", h: "Самый большой общий делитель." },
-        { q: "Сколько градусов в прямом угле?", a: "90", h: "Четверть круга." },
-        { q: "Сколько будет 2 в степени 5?", a: "32", h: "2×2×2×2×2." },
-        { q: "Сколько будет 0.5 + 0.25?", a: "0.75", h: "Половина и четверть." },
-        { q: "Площадь прямоугольника 6×4.", a: "24", h: "Длина × ширина." },
-        { q: "Сколько секунд в 3 минутах?", a: "180", h: "60×3." },
-        { q: "Сколько будет 11 × 9?", a: "99", h: "Одиннадцать девяток." },
-        { q: "Найди среднее: 8, 10, 12.", a: "10", h: "Сумма / 3." }
-      ]
-    };
+    const questions = [
+      { q: "Сколько будет 2 + 2?", a: "4", h: "Это как две пары." },
+      { q: "Какой цвет у солнца на рисунках?", a: "желтый", h: "Тёплый и яркий цвет." },
+      { q: "Сколько лап у собаки?", a: "4", h: "Столько же, сколько у кота." },
+      { q: "Продолжи: 3, 4, 5, ...", a: "6", h: "Следующее число." },
+      { q: "Что больше: 9 или 7?", a: "9", h: "Большее число ближе к 10." },
+      { q: "Сколько будет 10 - 3?", a: "7", h: "Убери три." },
+      { q: "Сколько будет 5 + 4?", a: "9", h: "Пять и ещё четыре." },
+      { q: "Сколько дней в неделе?", a: "7", h: "От понедельника до воскресенья." },
+      { q: "Как называется фигура с тремя углами?", a: "треугольник", h: "Три угла." },
+      { q: "Сколько будет 6 + 5?", a: "11", h: "Чуть больше десяти." }
+    ];
 
-    let age = 5;
-    let level = 0;
-    let stars = 1;
+    const world = document.getElementById('world');
+    const stage = document.getElementById('stage');
+    const robot = document.getElementById('robot');
+    const levelEl = document.getElementById('level');
+    const starsEl = document.getElementById('stars');
+    const bonusesEl = document.getElementById('bonuses');
+    const taskEl = document.getElementById('task');
+    const msgEl = document.getElementById('message');
+    const answerEl = document.getElementById('answer');
+    const checkBtn = document.getElementById('checkBtn');
+    const qaBlock = document.getElementById('qaBlock');
+    const leftBtn = document.getElementById('leftBtn');
+    const rightBtn = document.getElementById('rightBtn');
+    const jumpBtn = document.getElementById('jumpBtn');
+    const hintBtn = document.getElementById('hintBtn');
 
-    const el = {
-      ageBlock: document.getElementById('ageBlock'),
-      level: document.getElementById('level'),
-      task: document.getElementById('task'),
-      answer: document.getElementById('answer'),
-      msg: document.getElementById('message'),
-      stars: document.getElementById('stars'),
-      robot: document.getElementById('robot'),
-      checkBtn: document.getElementById('checkBtn')
-    };
+    const obstaclesData = [340, 520, 760, 980, 1190, 1410, 1650, 1880].map((x, i) => ({ x, w: 44, h: i % 2 ? 50 : 72 }));
+    const starPath = [240, 450, 680, 910, 1130, 1360, 1560, 1760, 1940, 2100];
+    const bonusData = [
+      { x: 305, y: 130, icon: '🧸' }, { x: 860, y: 130, icon: '🚗' }, { x: 1460, y: 130, icon: '🐶' }, { x: 2020, y: 130, icon: '🧩' }
+    ];
 
-    let x = 40;
-    let y = 0;
-    let jumping = false;
+    obstaclesData.forEach((o) => {
+      const d = document.createElement('div');
+      d.className = 'obstacle';
+      d.style.left = `${o.x}px`;
+      d.style.height = `${o.h}px`;
+      world.appendChild(d);
+    });
 
-    const normalize = (v) => v.toLowerCase().trim().replace(/ё/g, 'е');
+    const bonusEls = bonusData.map((b) => {
+      const d = document.createElement('div');
+      d.className = 'bonus';
+      d.textContent = b.icon;
+      d.style.left = `${b.x}px`;
+      d.style.bottom = `${b.y}px`;
+      world.appendChild(d);
+      return d;
+    });
 
-    function renderTask() {
-      const curr = blocks[age][level];
-      el.ageBlock.textContent = `${age} лет`;
-      el.level.textContent = `${level + 1} / 10`;
-      el.task.textContent = curr.q;
-      el.answer.value = '';
-      el.msg.textContent = '';
-      el.stars.textContent = '⭐'.repeat(Math.min(stars, 20));
+    const starEl = document.createElement('div');
+    starEl.className = 'star';
+    world.appendChild(starEl);
+
+    let level = 0, stars = 0, bonusCount = 0;
+    let x = 40, y = 0, vy = 0;
+    let questionActive = false;
+    const keys = { left: false, right: false };
+
+    const requiredElements = [world, stage, robot, levelEl, starsEl, bonusesEl, taskEl, msgEl, answerEl, checkBtn, qaBlock, leftBtn, rightBtn, jumpBtn, hintBtn];
+    if (requiredElements.some((el) => !el)) {
+      const failMsg = document.createElement('p');
+      failMsg.className = 'fatal';
+      failMsg.textContent = 'Ошибка запуска: не найдены обязательные элементы интерфейса.';
+      document.body.prepend(failMsg);
+      throw new Error('Startup failed: required DOM element is missing');
     }
 
-    function successDance() {
-      el.robot.style.transform = 'rotate(-8deg) scale(1.04)';
-      setTimeout(() => el.robot.style.transform = 'rotate(8deg) scale(1.04)', 120);
-      setTimeout(() => el.robot.style.transform = 'rotate(0deg) scale(1)', 240);
+    function normalize(v) { return v.toLowerCase().trim().replace(/ё/g, 'е'); }
+
+    function setEmotion(type) {
+      robot.classList.remove('happy', 'sad');
+      if (type) robot.classList.add(type);
+      setTimeout(() => robot.classList.remove('happy', 'sad'), 700);
     }
 
-    function nextLevel() {
-      level += 1;
-      stars += 1;
-      if (level >= 10) {
-        if (age < 10) {
-          age += 1;
-          level = 0;
-          el.msg.textContent = `🎉 Отлично! Переходим в блок ${age} лет.`;
-          el.msg.className = 'msg ok';
-        } else {
-          el.msg.textContent = '🏆 Ура! Ты прошёл все блоки от 5 до 10 лет!';
-          el.msg.className = 'msg ok';
-          level = 9;
-        }
+    function playHappyTune() {
+      try {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) return;
+        const ctx = new Ctx();
+        const notes = [523.25, 659.25, 783.99];
+        notes.forEach((f, i) => {
+          const o = ctx.createOscillator();
+          const g = ctx.createGain();
+          o.type = 'triangle';
+          o.frequency.value = f;
+          g.gain.value = 0.001;
+          o.connect(g); g.connect(ctx.destination);
+          const t = ctx.currentTime + i * 0.15;
+          g.gain.exponentialRampToValueAtTime(0.15, t + 0.03);
+          g.gain.exponentialRampToValueAtTime(0.001, t + 0.16);
+          o.start(t); o.stop(t + 0.18);
+        });
+      } catch (_) {
+        // В старых/ограниченных браузерах звук может быть недоступен.
       }
-      renderTask();
-      successDance();
+    }
+
+    function renderHud() {
+      levelEl.textContent = `${Math.min(level + 1, 10)} / 10`;
+      starsEl.textContent = `${stars} ⭐`;
+      bonusesEl.textContent = `${bonusCount} 🧸`;
+      starEl.style.left = `${starPath[Math.min(level, 9)]}px`;
+      starEl.style.display = level >= 10 ? 'none' : 'block';
+      qaBlock.classList.toggle('hidden', !questionActive);
+    }
+
+    function collide(ax, ay, aw, ah, bx, by, bw, bh) {
+      return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+    }
+
+    function tryOpenQuestion() {
+      if (level >= 10 || questionActive) return;
+      const sx = starPath[level];
+      if (Math.abs((x + 48) - sx) < 35 && y < 15) {
+        questionActive = true;
+        taskEl.textContent = questions[level].q;
+        msgEl.textContent = 'Ответь, чтобы забрать звезду!';
+        answerEl.value = '';
+        answerEl.focus();
+        renderHud();
+      }
     }
 
     function checkAnswer() {
-      const curr = blocks[age][level];
-      const input = normalize(el.answer.value);
-      if (!input) {
-        el.msg.textContent = 'Введи ответ 🙂';
-        el.msg.className = 'msg warn';
-        return;
-      }
-      if (input === normalize(curr.a)) {
-        el.msg.textContent = 'Верно! Молодец! ⭐';
-        el.msg.className = 'msg ok';
-        setTimeout(nextLevel, 700);
+      if (!questionActive) return;
+      const curr = questions[level];
+      if (normalize(answerEl.value) === normalize(curr.a)) {
+        stars += 1;
+        level += 1;
+        questionActive = false;
+        msgEl.className = 'msg ok';
+        msgEl.textContent = 'Правильно! КЕФИРЧИК сияет и забирает звезду!';
+        taskEl.textContent = level >= 10 ? '🏆 Все звёзды собраны! Победа!' : 'Беги к следующей звезде ⭐';
+        setEmotion('happy');
+        playHappyTune();
       } else {
-        el.msg.textContent = 'Почти! Нажми Q для подсказки.';
-        el.msg.className = 'msg warn';
+        msgEl.className = 'msg warn';
+        msgEl.textContent = 'Немного ошибся. КЕФИРЧИК расстроился и чуть сдулся 😔';
+        setEmotion('sad');
+      }
+      renderHud();
+    }
+
+    function jump() {
+      if (y === 0 && !questionActive) vy = 13;
+    }
+
+    function showHint() {
+      if (!questionActive) return;
+      msgEl.className = 'msg warn';
+      msgEl.textContent = `Подсказка: ${questions[level].h}`;
+    }
+
+    function resetMovement() {
+      keys.left = false;
+      keys.right = false;
+    }
+
+    function bindHoldButton(button, onPress, onRelease) {
+      if (!button) return;
+      const start = (e) => {
+        e.preventDefault();
+        if (button.setPointerCapture && e.pointerId !== undefined) {
+          button.setPointerCapture(e.pointerId);
+        }
+        onPress();
+      };
+      const end = (e) => {
+        e.preventDefault();
+        onRelease();
+      };
+
+      if ('PointerEvent' in window) {
+        button.addEventListener('pointerdown', start);
+        button.addEventListener('pointerup', end);
+        button.addEventListener('pointercancel', end);
+        button.addEventListener('lostpointercapture', end);
+      } else {
+        button.addEventListener('mousedown', start);
+        button.addEventListener('mouseup', end);
+        button.addEventListener('mouseleave', end);
+        button.addEventListener('touchstart', start, { passive: false });
+        button.addEventListener('touchend', end, { passive: false });
+        button.addEventListener('touchcancel', end, { passive: false });
       }
     }
 
-    function moveRobot(dx) {
-      x = Math.min(740, Math.max(0, x + dx));
-      el.robot.style.left = `${x}px`;
+
+    function bindTapButton(button, handler) {
+      if (!button) return;
+      let doneByPointer = false;
+
+      if ('PointerEvent' in window) {
+        button.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
+          doneByPointer = true;
+          handler();
+        });
+      }
+
+      button.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (doneByPointer) {
+          doneByPointer = false;
+          return;
+        }
+        handler();
+      });
+
+      if (!('PointerEvent' in window)) {
+        button.addEventListener('touchstart', (e) => { e.preventDefault(); handler(); }, { passive: false });
+      }
     }
 
-    function jumpRobot() {
-      if (jumping) return;
-      jumping = true;
-      y = 46;
-      el.robot.style.bottom = `${62 + y}px`;
-      setTimeout(() => {
-        y = 0;
-        el.robot.style.bottom = `${62 + y}px`;
-        jumping = false;
-      }, 280);
+    function physics() {
+      const speed = questionActive ? 0 : 3.2;
+      let nextX = x + (keys.left ? -speed : 0) + (keys.right ? speed : 0);
+      nextX = Math.max(0, Math.min(2100, nextX));
+
+      for (const o of obstaclesData) {
+        const hit = collide(nextX, y, 98, 138, o.x, 0, o.w, o.h + 68);
+        if (hit && y < o.h + 2) {
+          if (nextX > x) nextX = o.x - 98;
+          if (nextX < x) nextX = o.x + o.w;
+        }
+      }
+      x = nextX;
+
+      vy -= 0.9;
+      y += vy;
+      if (y < 0) { y = 0; vy = 0; }
+
+      robot.style.left = `${x}px`;
+      robot.style.bottom = `${68 + y}px`;
+
+      bonusData.forEach((b, i) => {
+        if (b.collected) return;
+        if (collide(x + 20, y + 20, 56, 92, b.x, b.y, 35, 35)) {
+          b.collected = true;
+          bonusCount += 1;
+          bonusEls[i].style.display = 'none';
+          msgEl.className = 'msg ok';
+          msgEl.textContent = 'Бонус найден!';
+          renderHud();
+        }
+      });
+
+      const camX = Math.max(0, Math.min(x - 300, 2200 - stage.clientWidth));
+      world.style.transform = `translateX(${-camX}px)`;
+      tryOpenQuestion();
+      requestAnimationFrame(physics);
     }
 
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowRight') moveRobot(20);
-      if (e.key === 'ArrowLeft') moveRobot(-20);
-      if (e.key === 'ArrowUp') jumpRobot();
-      if (e.key.toLowerCase() === 'q') {
-        const curr = blocks[age][level];
-        el.msg.textContent = `Подсказка: ${curr.h}`;
-        el.msg.className = 'msg warn';
-      }
-      if (e.key.toLowerCase() === 'w') {
-        const curr = blocks[age][level];
-        el.msg.textContent = `Повтор: ${curr.q}`;
-        el.msg.className = 'msg';
-      }
-      if (e.key.toLowerCase() === 'e') {
-        el.msg.textContent = 'Кефирный роботик радуется! 🤖💃';
-        el.msg.className = 'msg ok';
-        successDance();
-      }
+      const isTyping = document.activeElement === answerEl;
+      if (isTyping && e.key !== 'Enter') return;
+
+      if (e.key === 'ArrowLeft') keys.left = true;
+      if (e.key === 'ArrowRight') keys.right = true;
+      if (e.key === 'ArrowUp') jump();
+      if (e.key.toLowerCase() === 'q') showHint();
+    });
+    document.addEventListener('keyup', (e) => {
+      if (e.key === 'ArrowLeft') keys.left = false;
+      if (e.key === 'ArrowRight') keys.right = false;
     });
 
-    el.checkBtn.addEventListener('click', checkAnswer);
-    el.answer.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') checkAnswer();
+    window.addEventListener('blur', resetMovement);
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) resetMovement();
     });
 
-    renderTask();
+    checkBtn.addEventListener('click', checkAnswer);
+    answerEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') checkAnswer(); });
+
+    bindHoldButton(leftBtn, () => { keys.left = true; }, () => { keys.left = false; });
+    bindHoldButton(rightBtn, () => { keys.right = true; }, () => { keys.right = false; });
+    bindTapButton(jumpBtn, jump);
+    bindTapButton(hintBtn, showHint);
+
+    renderHud();
+    physics();
   </script>
 </body>
 </html>
